@@ -12,51 +12,21 @@
 #include <cassert>
 
 #include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/boykov_kolmogorov_max_flow.hpp>
 #include <boost/graph/push_relabel_max_flow.hpp>
-#include <boost/graph/edmonds_karp_max_flow.hpp>
-#include <boost/graph/preflow_push_max_flow.hpp>
 
 using namespace std;
 using namespace boost;
 
 typedef set<pair<size_t, size_t> > TEdges;
 
-typedef int EdgeWeightType;
-
 typedef adjacency_list_traits < vecS, vecS, directedS > Traits;
 
 typedef adjacency_list < vecS, vecS, directedS,
-  property < vertex_name_t, std::string,
-    property < vertex_index_t, long,
-      property < vertex_color_t, boost::default_color_type,
-        property < vertex_distance_t, long,
-          property < vertex_predecessor_t, Traits::edge_descriptor > > > > >,
-
-  property < edge_capacity_t, EdgeWeightType,
-    property < edge_residual_capacity_t, EdgeWeightType,
-      property < edge_reverse_t, Traits::edge_descriptor > > > > Graph;
-
-Traits::edge_descriptor AddEdge(Traits::vertex_descriptor &v1,
-                                Traits::vertex_descriptor &v2,
-                                property_map < Graph, edge_reverse_t >::type &rev,
-                                EdgeWeightType capacity,
-                                Graph &g);
-
-Traits::edge_descriptor AddEdge(Traits::vertex_descriptor &v1,
-								Traits::vertex_descriptor &v2,
-								property_map < Graph, edge_reverse_t >::type &rev,
-								EdgeWeightType capacity,
-								Graph &g) {
-  Traits::edge_descriptor e1 = add_edge(v1, v2, g).first;
-  Traits::edge_descriptor e2 = add_edge(v2, v1, g).first;
-  put(edge_capacity, g, e1, capacity);
-  put(edge_capacity, g, e2, capacity);
-
-  rev[e1] = e2;
-  rev[e2] = e1;
-}
-
+		no_property,
+		property<edge_capacity_t, long,
+			property<edge_residual_capacity_t, long,
+				property<edge_reverse_t, Traits::edge_descriptor> > >
+> Graph;
 
 int main(int argc, char ** argv) {
 
@@ -93,19 +63,26 @@ int main(int argc, char ** argv) {
 	cerr << "The final network's size is " << current_network_size << "." << endl;
 
 
+	long flow = 0;
 	Graph g(current_network_size);
-	property_map < Graph, edge_reverse_t >::type rev = get(edge_reverse, g);
+
+	property_map<Graph, edge_capacity_t>::type capacity = get(edge_capacity, g);
+	property_map<Graph, edge_reverse_t>::type rev = get(edge_reverse, g);
+	property_map<Graph, edge_residual_capacity_t>::type residual_capacity = get(edge_residual_capacity, g);
 
 	for (TEdges::const_iterator it = edges.begin(); it != edges.end(); ++it) {
 		cout << it->first << " " << it->second << endl;
-		AddEdge(it->first, it->second, rev, 1);
+		Traits::edge_descriptor e1 = add_edge(it->first, it->second, g).first;
+		Traits::edge_descriptor e1r = add_edge(it->second, it->first, g).first;
+		put(edge_capacity, g, e1, 1);
+		put(edge_capacity, g, e1r, 0);
+		rev[e1] = e1r;
+		rev[e1r] = e1;
 	}
 
 	for (size_t i = 1; i < N; ++i) {
 		cerr << "Checking the flow from 0 to " << i << ". " << endl;
-		EdgeWeightType flow = boykov_kolmogorov_max_flow(g, 0, i); // a list of sources will be returned in s, and a list of sinks will be returned in t
-		//EdgeWeightType flow = push_relabel_max_flow(g, 0, i); // a list of sources will be returned in s, and a list of sinks will be returned in t
-		//EdgeWeightType flow = edmunds_karp_max_flow(g, 0, i); // a list of sources will be returned in s, and a list of sinks will be returned in t
+		flow = push_relabel_max_flow(g, 0, i);
 		assert(flow >= 1);
 		cerr << "The flow equals to " << flow << endl;
 
