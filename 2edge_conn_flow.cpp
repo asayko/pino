@@ -80,7 +80,7 @@ int main(int argc, char ** argv) {
 	}
 
 	cerr << "The vertex 0 is 2-edge connected with 0." << endl;
-	cout << 0 << " " << endl;
+	cout << 0 << " ";
 	for (size_t i = 1; i < N; ++i) {
 		cerr << "Checking the flow from 0 to " << i << ". " << endl;
 		flow = push_relabel_max_flow(g, 0, i);
