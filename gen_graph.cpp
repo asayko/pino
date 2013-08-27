@@ -54,6 +54,8 @@ int main(int argc, char ** argv) {
 		termination_sparsity_koef = t * N;
 	}
 
+	srand(time(NUUL));
+
 	size_t current_graph_size = rand() % (N - 1) + 2;
 	cerr << "Initial cycle size is taken for " << current_graph_size << "." << endl;
 
