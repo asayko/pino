@@ -71,7 +71,6 @@ int main(int argc, char ** argv) {
 	property_map<Graph, edge_residual_capacity_t>::type residual_capacity = get(edge_residual_capacity, g);
 
 	for (TEdges::const_iterator it = edges.begin(); it != edges.end(); ++it) {
-		cout << it->first << " " << it->second << endl;
 		Traits::edge_descriptor e1 = add_edge(it->first, it->second, g).first;
 		Traits::edge_descriptor e1r = add_edge(it->second, it->first, g).first;
 		put(edge_capacity, g, e1, 1);
@@ -80,6 +79,8 @@ int main(int argc, char ** argv) {
 		rev[e1r] = e1;
 	}
 
+	cerr << "The vertex 0 is 2-edge connected with 0." << endl;
+	cout << 0 << " " << endl;
 	for (size_t i = 1; i < N; ++i) {
 		cerr << "Checking the flow from 0 to " << i << ". " << endl;
 		flow = push_relabel_max_flow(g, 0, i);
@@ -87,10 +88,11 @@ int main(int argc, char ** argv) {
 		cerr << "The flow equals to " << flow << endl;
 
 		if (flow > 1) {
-			cerr << "The vertex " << i << "is 2-edge connected with 0." << endl;
-			cout << i << endl;
+			cerr << "The vertex " << i << " is 2-edge connected with 0." << endl;
+			cout << i << " ";
 		}
 	}
+	cout << endl;
 
 	return 0;
 }
